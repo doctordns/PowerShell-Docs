@@ -48,11 +48,15 @@ Get-CimInstance -ClassName Win32_BIOS -ComputerName .
 
 ## Listing Processor Information
 
-You can retrieve general processor information by using WMI's **Win32_Processor** class, although you will likely want to filter the information:
+You retrieve detailed processor information by using WMI's **Win32_Processor** class, although you may wish to filter the information:
 
 ```powershell
 Get-CimInstance -ClassName Win32_Processor -ComputerName . | Select-Object -ExcludeProperty "CIM*"
 ```
+To discover the properties of the Win32_Processor object returnedfrom the previous command, you can use Get-Member:
+
+```powershell
+Get-CimInstance -ClassName Win32
 
 For a generic description string of the processor family, you can just return the **SystemType** property:
 
@@ -67,7 +71,7 @@ X86-based PC
 ## Listing Computer Manufacturer and Model
 
 Computer model information is also available from **Win32_ComputerSystem**.
-The standard displayed output will not need any filtering to provide OEM data:
+The default output does not need any filtering to provide OEM data:
 
 ```powershell
 Get-CimInstance -ClassName Win32_ComputerSystem
@@ -81,6 +85,21 @@ MyPC Jane Doe         WORKGROUP 804765696           DA243A-ABA 6415cl NA910 Comp
 
 Your output from commands such as this, which return information directly from some hardware, is only as good as the data you have.
 Some information is not correctly configured by hardware manufacturers and may therefore be unavailable.
+And like other CIM classes, there is additional properties returned.
+You can pipe the output to `Get-Member` to discover additional properties.
+To view those non-default properties, pipe the output to `Select-Object` specifying which properties to return:
+
+```powerShell
+Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object -Property Name, SystemType, Description, NumberOfProcessors, NumberOfLogicalProcessors
+```
+
+```output
+Name                      : MyPC2
+Systemtype                : x64-based PC
+Description               : AT/AT COMPATIBLE
+NumberofProcessors        : 2
+NumberOfLogicalProcessors : 24
+```
 
 ## Listing Installed Hotfixes
 
@@ -99,7 +118,8 @@ Source Description     HotFixID  InstalledBy   InstalledOn PSComputerName
 ```
 
 For more succinct output, you may want to exclude some properties.
-Although you can use the `Get-CimInstance`'s **Property** parameter to choose only the **HotFixID**, doing so will actually return more information, because all the metadata is displayed by default:
+Although you can use the `Get-CimInstance`'s **Property** parameter to choose only the **HotFixID**.
+Doing so does not return other information about the hotfix, but does return metadata which is displayed by default:
 
 ```powershell
 Get-CimInstance -ClassName Win32_QuickFixEngineering -ComputerName . -Property HotFixID
@@ -238,7 +258,7 @@ PSComputerName : .
 
 To view the status of all services on a specific computer, you can locally use the `Get-Service` cmdlet.
 For remote systems, you can use the **Win32_Service** WMI class.
-If you also use `Select-Object` to filter the results to **Status**, **Name**, and **DisplayName**, the output format will be almost identical to that from `Get-Service`:
+If you also use `Select-Object` to filter the results to **Status**, **Name**, and **DisplayName**, the output format is almost identical to that from `Get-Service`:
 
 ```powershell
 Get-CimInstance -ClassName Win32_Service -ComputerName . | Select-Object -Property Status,Name,DisplayName
